@@ -1,0 +1,27 @@
+PLAYER_1_NAME = '{{ bot_a.name }}'
+PLAYER_1_PATH = '{{ bot_a.path }}'
+
+PLAYER_2_NAME = '{{ bot_b.name }}'
+PLAYER_2_PATH = '{{ bot_b.path }}'
+
+GAME_LOG_FILENAME = 'gamelog'
+
+PLAYER_LOG_SIZE_LIMIT = {{ player_log_size_limit }}
+
+ENFORCE_GAME_CLOCK = True
+STARTING_GAME_CLOCK = {{ game_time_restriction }}
+BUILD_TIMEOUT = 120.
+CONNECT_TIMEOUT = 10.
+QUIT_TIMEOUT = 10.
+
+NUM_ROUNDS = {{ game_num_hands }}
+STARTING_STACK = {{ game_starting_stack }}
+BIG_BLIND = {{ game_big_blind }}
+SMALL_BLIND = {{ game_small_blind }}
+
+# Hyperparameters for Bounty Holdem
+ROUNDS_PER_BOUNTY = 25 # unlikely to change
+BOUNTY_RATIO = 1.5 # subject to change, ratio as a multiplier of pot
+BOUNTY_CONSTANT = 10
+
+PLAYER_TIMEOUT = 120

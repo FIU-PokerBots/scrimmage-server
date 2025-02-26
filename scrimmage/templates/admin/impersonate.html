@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Admin: Impersonate</h1>
+  </div>
+
+  <form class="ui form" method="POST">
+    <div class="field">
+      <label>Kerberos</label>
+      <input type="text" placeholder="(i.e. 'jserrino')" name='kerberos'>
+    </div>
+    <button class="ui basic negative button">Impersonate</button>
+  </form>
+  <br />
+  {% if g.kerberos != g.real_kerberos %}
+    <form class="ui form" method="POST">
+      <input type="hidden" name="kerberos" value="{{ g.real_kerberos }}" />
+      <button class="ui positive button">Cancel Impersonation</button>
+    </form>
+  {% endif %}
+
+{% endblock %}

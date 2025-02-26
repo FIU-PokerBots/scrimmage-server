@@ -1,0 +1,176 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>{{ g.team.name }} - Pokerbots Scrimmage</h1>
+  {% if flash %}
+    <div class="ui {{ flash_level }} message">
+      {{ flash }}
+    </div>
+  {% endif %}
+  {% if g.team.is_disabled %}
+    <div class="ui warning message">
+      <div class="header">
+        Team disabled.
+      </div>
+      Your team is currently disabled, and cannot challenge or receive new challenges.
+    </div>
+  {% endif %}
+  {% if g.settings['challenges_enabled'] != 'true' %}
+    <div class="ui info message">
+      <div class="header">
+        Challenges disabled.
+      </div>
+      Challenges are currently disabled.
+    </div>
+  {% endif %}
+  {% if g.settings['challenges_only_reference'] == 'true' %}
+    <div class="ui info message">
+      <div class="header">
+        Reference challenges only.
+      </div>
+      Challenges are disabled against all teams besides reference players.
+    </div>
+  {% endif %}
+  {% if not g.team.can_challenge() %}
+    <div class="ui warning message">
+      <div class="header">
+        Team not ready!
+      </div>
+      Your team is not ready to play. <a href="{{ url_for('manage_team') }}">Go to the team management page</a> to upload and select a bot.
+    </div>
+  {% endif %}
+  <div class="ui stackable grid container">
+    <div class="ten wide column">
+      <h2>Team Standings</h2>
+      <table class="ui celled striped table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>ELO</th>
+            <th>Wins</th>
+            <th>Losses</th>
+            <th>Challenge</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for team in challengeable_teams|sort(attribute='elo', reverse=True) %}
+            <tr{% if g.team == team %} class='active'{% elif team.must_autoaccept %} class='warning'{% endif %}>
+              <td>{{ team.name }}</td>
+              <td style="text-align: center">
+                <div class="ui mini statistic">
+                  <div class="value">
+                    {{ team.elo | int }}
+                  </div>
+                </div>
+              </td>
+              <td style="text-align: center">
+                <div class="ui mini green statistic">
+                  <div class="value">
+                    {{ team.wins }}
+                  </div>
+                </div>
+              </td>
+              <td style="text-align: center">
+                <div class="ui mini red statistic">
+                  <div class="value">
+                    {{ team.losses }}
+                  </div>
+                </div>
+              </td>
+              <td style="text-align: center">
+                <form class="ui inline form" action="{{ url_for('challenge') }}" method="POST">
+                  <input type="hidden" name="team_id" value="{{ team.id }}" />
+                  <button
+                    class="ui primary icon button
+                    {% if (
+                      not team.can_challenge() or
+                      team == g.team or
+                      g.settings['challenges_enabled'].lower() != 'true' or
+                      not (g.settings['challenges_only_reference'] == 'false' or team.must_autoaccept)
+                    ) %}
+                      disabled
+                    {% endif %}
+                    title="Set bot"
+                    style="pointer-events: auto;"
+                  >
+                    <i class="rocket icon"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if g.settings['challenges_enabled'].lower() == 'true' %}
+        <p>
+          Challenges for people of higher ELO will automatically be accepted. Challenges for reference (yellow) players will also automatically be accepted.
+        </p>
+      {% else %}
+        <p>
+          Challenges are currently disabled.
+        </p>
+      {% endif %}
+    </div>
+    <div class="six wide column">
+      <h2>Challenges</h2>
+      <div>
+        <div class="ui segments">
+          {% for request in pending_requests %}
+          <div class="ui segment">
+            <h3 class="ui header">
+              <div class="content">
+                {{ request.challenger.name }}
+                <div class="sub header">{{ request.create_time | naturaltime }}</div>
+              </div>
+              <div style="float: right;">
+                <form style="margin: 0; display: inline-block;" class="ui inline form" action="{{ url_for('answer_request', request_id=request.id) }}", method="POST">
+                  <input type="hidden" name="action" value="accept" />
+                  <button class="ui positive button">Accept</button>
+                </form>
+                <form style="margin: 0; display: inline-block;" class="ui inline form" action="{{ url_for('answer_request', request_id=request.id) }}", method="POST">
+                  <input type="hidden" name="action" value="reject" />
+                  <button class="ui negative button">Reject</button>
+                </form>
+              </div>
+            </h3>
+          </div>
+          {% else %}
+            <div class='ui segment'>
+              When people of higher ELO challenge you, their requests will appear here.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <h3>Outgoing challenges</h3>
+      <div>
+        <div class="ui segments">
+          {% for request in g.team.outgoing_requests() %}
+          <div class="ui segment">
+            <h3 class="ui header">
+              <div class="content">
+                To: {{ request.opponent.name }}
+                <div class="sub header">{{ request.create_time | naturaltime }}</div>
+              </div>
+            </h3>
+          </div>
+          {% else %}
+            <div class='ui segment'>
+              Your outgoing requests appear here.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <br />
+  {% with announce_title="Most Recent Announcement" %}
+    {% include '_announcements.html' %}
+  {% endwith %}
+  {% include '_recent_games.html' %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('select.dropdown').dropdown();
+</script>
+{% endblock %}

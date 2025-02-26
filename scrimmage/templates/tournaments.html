@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>Tournaments</h1>
+
+  {% for tournament in tournaments %}
+    <div class="ui segment
+        {% if tournament.status.value == 'created' %}
+          black
+        {% elif tournament.status.value == 'spawning' %}
+          yellow
+        {% elif tournament.status.value == 'spawned' %}
+          black
+        {% elif tournament.status.value == 'done' %}
+          green
+        {% endif %}
+    ">
+      <h3 class="ui dividing header">
+        {{ tournament.title }}
+        {% if tournament.is_private %}
+          <span class="ui red label">Private</span>
+        {% endif %}
+        <div class="sub header">
+          {{ tournament.create_time | naturaltime }}
+        </div>
+      </h3>
+      <div class="ui stackable divided grid container">
+        <div class="row">
+          <div class="ui six wide column">
+            <div class="ui two small statistics">
+              <div class="statistic">
+                <div class="value">
+                  {{ tournament.participants|length }}
+                </div>
+                <div class="label">
+                  Participants
+                </div>
+              </div>
+              <div class="statistic">
+                <div class="value">
+                  {{ tournament.games_per_pair }}
+                </div>
+                <div class="label">
+                  Games/Pair
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui ten wide column">
+            <div class="ui {% if tournament.status.value == 'done' %} success {% endif %} progress" data-percent="{{ tournament.progress() }}">
+              <div class="bar"></div>
+              <div class="label">
+                {% if tournament.status.value == 'created' %}
+                  Creating...
+                {% elif tournament.status.value == 'spawning' %}
+                  Spawning games. {{ tournament.num_games_running() }} games running.
+                {% elif tournament.status.value == 'spawned' and tournament.is_in_progress() %}
+                  {{ tournament.num_games_running() }} games running. {{ tournament.num_games_queued() }} to go.
+                {% elif tournament.status.value == 'spawned' and not tournament.is_in_progress() %}
+                  Finalizing...
+                {% elif tournament.status.value == 'done' %}
+                  Done!
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="ui sixteen wide column">
+            <table class="ui celled striped table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>ELO</th>
+                  <th>Wins</th>
+                  <th>Losses</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for bot in tournament.sorted_participants() %}
+                  <tr{% if g.team == bot.bot.team %} class='active'{% endif %}>
+                    <td>{{ bot.bot.team.name }}</td>
+                    <td style="text-align: center">
+                      <div class="ui mini statistic">
+                        <div class="value">
+                          {% if bot.elo is not none %}
+                            {{ bot.elo | int }}
+                          {% else %}
+                            N/A
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+                    <td style="text-align: center">
+                      <div class="ui mini green statistic">
+                        <div class="value">
+                          {{ bot.wins }}
+                        </div>
+                      </div>
+                    </td>
+                    <td style="text-align: center">
+                      <div class="ui mini red statistic">
+                        <div class="value">
+                          {{ bot.losses }}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <p>
+      There are no tournaments yet. Check back later!
+    </p>
+  {% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $('.progress').progress();
+</script>
+{% endblock %}

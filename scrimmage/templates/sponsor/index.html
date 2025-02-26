@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Sponsor Access</h1>
+
+<div class="ui message">
+  Welcome to the scrimmage server sponsor view! Select a team below to view more information. If you have feature requests, feel free to shoot them over to <a href="mailto:pokerbots-sponsor@mit.edu">pokerbots-sponsor@mit.edu</a>
+</div>
+
+<h2>Tournaments</h2>
+<a href="{{ url_for('show_tournaments') }}">Click here see the weekly tournaments</a>
+
+<h2 class="ui header">Team Standings
+<div class="sub header">
+  Click on a team to see more.
+</div>
+</h2>
+<table class="ui selectable celled striped table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>ELO</th>
+      <th>Wins</th>
+      <th>Losses</th>
+      <th>Total Members</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for team in teams|sort(attribute='elo', reverse=True) %}
+      <tr onclick="window.location = '{{ url_for('sponsor_team', team_id=team.id) }}'">
+        <td>
+          <a href="{{ url_for('sponsor_team', team_id=team.id) }}">
+            {{ team.name }}
+          </a>
+        </td>
+        <td style="text-align: center">
+          <div class="ui mini statistic">
+            <div class="value">
+              {{ team.elo | int }}
+            </div>
+          </div>
+        </td>
+        <td style="text-align: center">
+          <div class="ui mini green statistic">
+            <div class="value">
+              {{ team.wins }}
+            </div>
+          </div>
+        </td>
+        <td style="text-align: center">
+          <div class="ui mini red statistic">
+            <div class="value">
+              {{ team.losses }}
+            </div>
+          </div>
+        </td>
+        <td style="text-align: center">
+          <div class="ui mini statistic">
+            <div class="value">
+              {{ team.members|length }}
+            </div>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>{{ g.team.name }}</h1>
+  <div class="ui stackable grid container">
+    <div class="eight wide column">
+      <h2>Manage</h2>
+      <div>
+        <h3>Status</h3>
+        <p>
+          {% if g.team.can_challenge() and g.team.can_be_challenged() %}
+            Your team is ready to play!
+          {% else %}
+            Your team is <strong>not</strong> ready to play. Please upload at least one bot and select your current bot on the right.
+          {% endif %}
+        </p>
+        <h3>Statistics</h3>
+        <div class="ui four small statistics">
+          <div class="statistic">
+            <div class="value">
+              {{ g.team.elo|int }}
+            </div>
+            <div class="label">
+              ELO
+            </div>
+          </div>
+          <div class="green statistic">
+            <div class="value">
+              {{ g.team.wins }}
+            </div>
+            <div class="label">
+              Wins
+            </div>
+          </div>
+          <div class="red statistic">
+            <div class="value">
+              {{ g.team.losses }}
+            </div>
+            <div class="label">
+              Losses
+            </div>
+          </div>
+          <div class="statistic">
+            <div class="value">
+              {{ g.team.wins + g.team.losses }}
+            </div>
+            <div class="label">
+              Total Games
+            </div>
+          </div>
+        </div>
+      </div>
+      <h3>Teammates</h3>
+      <div>
+        <div class="ui segments">
+          {% for member in g.team.members %}
+            <div class="ui segment">
+              <h3 class="ui header">
+                <div class="content">
+                  {{ member.kerberos }}
+                </div>
+              </h3>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <h3>Incoming Teammate Requests</h3>
+      <div>
+        <div class="ui segments">
+          {% if g.team.can_be_joined() %}
+            {% for request in g.team.join_requests %}
+            <div class="ui segment">
+              <h3 class="ui header">
+                <div class="content">
+                  {{ request.kerberos }}
+                </div>
+                <div style="float: right;">
+                  <form style="margin: 0; display: inline-block;" class="ui inline form" action="{{ url_for('answer_join') }}", method="POST">
+                    <input type="hidden" name="kerberos" value="{{ request.kerberos }}">
+                    <input type="hidden" name="action" value="accept" />
+                    <button class="ui mini positive button">Accept</button>
+                  </form>
+                  <form style="margin: 0; display: inline-block;" class="ui inline form" action="{{ url_for('answer_join') }}", method="POST">
+                    <input type="hidden" name="kerberos" value="{{ request.kerberos }}">
+                    <input type="hidden" name="action" value="reject" />
+                    <button class="ui mini negative button">Reject</button>
+                  </form>
+                </div>
+              </h3>
+            </div>
+            {% else %}
+              <div class='ui segment'>
+                If someone requests to join your team, they will appear here.
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class='ui segment'>
+              Your team is full - no one else can join.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <h3>Leave team</h3>
+      <div>
+        <div class="ui message">
+          Use the button below to leave your team. If you are the only person on the team, your team will be disabled.
+        </div>
+        <form action="{{ url_for('leave_team') }}" method="POST" onsubmit="return confirm('Are you sure you want to leave? This action cannot be undone.');">
+          <button class="ui mini basic negative button">Leave team</button>
+        </form>
+      </div>
+    </div>
+    <div class="eight wide column">
+      <h2>Bots</h2>
+      <p>
+        Your current bot will be highlighted below.
+      </p>
+      <table class="ui compact celled striped table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Wins</th>
+            <th>Losses</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for bot in g.team.active_bots()|sort(attribute='create_time') %}
+            <tr{% if g.team.current_bot == bot %} class="positive"{% endif %}>
+              <td>
+                <a href="{{ url_for('download_bot', bot_id=bot.id) }}">
+                  {{ bot.name }}
+                </a>
+              </td>
+              <td>{{ bot.wins }}</td>
+              <td>{{ bot.losses }}</td>
+              <td>{{ bot.create_time }}</td>
+              <td style="text-align: center;">
+                <form class="ui inline form" action="{{ url_for('set_bot') }}" method="POST"
+                  style="display: inline-block;"
+                >
+                  <input type="hidden" name="bot_id" value="{{ bot.id }}" />
+                  <button
+                    class="ui positive icon button {% if bot == g.team.current_bot %}disabled{% endif %}"
+                    title="Set bot"
+                    style="pointer-events: auto;"
+                  >
+                    <i class="mouse pointer icon"></i>
+                  </button>
+                </form>
+                <form
+                  class="ui inline form"
+                  action="{{ url_for('delete_bot') }}"
+                  method="POST"
+                  style="display: inline-block;"
+                  onsubmit="return confirm('Are you sure you want to delete? This action cannot be undone.');"
+                >
+                  <input type="hidden" name="bot_id" value="{{ bot.id }}" />
+                  <button
+                    class="ui negative icon button {% if bot == g.team.current_bot %}disabled{% endif %}"
+                    title="Delete bot"
+                    style="pointer-events: auto;"
+                  >
+                    <i class="times icon"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan=5>You don't have any bots! Upload one below.
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="ui top attached segment">
+        <h3 class="ui dividing header">Upload a bot</h3>
+        <div>
+          <form class="ui form" method="POST" action="{{ url_for('create_bot') }}" enctype="multipart/form-data">
+            <div class="field">
+              <label>Bot name</label>
+              <input type="text" id="inputName" placeholder="i.e. Good bot 2" name='name'>
+            </div>
+            <div class="field">
+              <label>File select</label>
+              <input type="file" id="inputFile" name='file' accept='application/zip'>
+            </div>
+            <button type="submit" class="ui primary button">Upload</button>
+          </form>
+        </div>
+      </div>
+      <div class="ui bottom attached message">
+        <p>Upload your bot as a zip above (max 100 MB compressed, 1 GB uncompressed)</p>
+        <p>Please zip the entire parent folder containing your bot files.</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('select.dropdown').dropdown();
+</script>
+{% endblock %}

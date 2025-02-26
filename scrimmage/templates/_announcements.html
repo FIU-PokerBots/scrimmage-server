@@ -1,0 +1,26 @@
+<div class="container">
+  <h2>
+    {% if announce_title %}
+      {{ announce_title }}
+    {% else %}
+      Announcements
+    {% endif %}
+  </h2>
+
+  {% for announcement in announcements %}
+    <div class="ui top attached segment">
+      <h3 class="ui header">
+        {{ announcement.title }}
+        <div class="sub header">{{ announcement.create_time | naturaltime }} by {{ announcement.author_kerberos }}</div>
+      </h3>
+      <p>
+        {{ announcement.text }}
+      </p>
+    </div>
+  {% else %}
+    <p>
+      There are no announcements to show.
+    </p>
+  {% endfor %}
+  <br />
+</div>

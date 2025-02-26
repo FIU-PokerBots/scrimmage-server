@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>Admin: Teams list</h1>
+  {% if flash %}
+    <div class="ui {{ flash_level }} message">
+      {{ flash }}
+    </div>
+  {% endif %}
+  <table class="ui celled striped table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>name</th>
+        <th>members</th>
+        <th># bots</th>
+        <th>wins</th>
+        <th>losses</th>
+        <th>elo</th>
+        <th>modify</th>
+        <th>delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for team in teams %}
+        <tr>
+          <td>{{ team.id }}</td>
+          <td>{{ team.name }}</td>
+          <td>
+            {% for member in team.members %}
+              {{ member.kerberos }}
+              {{ ',' if not loop.last }}
+            {% else %}
+              No members.
+            {% endfor %}
+          </td>
+          <td style="text-align: center">
+            <div class="ui mini statistic">
+              <div class="value">
+                {{ team.bots|length }}
+              </div>
+            </div>
+          </td>
+          <td style="text-align: center">
+            <div class="ui green statistic">
+              <div class="value">
+                {{ team.wins }}
+              </div>
+            </div>
+          </td>
+          <td style="text-align: center">
+            <div class="ui red statistic">
+              <div class="value">
+                {{ team.losses }}
+              </div>
+            </div>
+          </td>
+          <td style="text-align: center">
+            <div class="ui mini statistic">
+              <div class="value">
+                {{ team.elo | int }}
+              </div>
+            </div>
+          </td>
+          <td>
+            <form class="ui inline form" action="{{ url_for('admin_team_modify', team_id=team.id) }}" method="POST">
+              <div class="three fields">
+                <div class="field">
+                  <label>Enabled?</label>
+                  <select name="is_disabled" class="ui fluid dropdown">
+                    <option value="no" {% if not team.is_disabled %} selected {% endif %}>Enabled</option>
+                    <option value="yes" {% if team.is_disabled %} selected {% endif %}>Disabled</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Auto-accepts?</label>
+                  <select name="must_autoaccept" class="ui fluid dropdown">
+                    <option value="no" {% if not team.must_autoaccept %} selected {% endif %}>Doesn't auto-accept</option>
+                    <option value="yes" {% if team.must_autoaccept %} selected {% endif %}>Auto-accept</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>&nbsp;</label>
+                  <button class="ui positive basic button">Modify</button>
+                </div>
+              </div>
+            </form>
+          </td>
+          <td style="text-align: center">
+            {% if team.can_be_deleted() %}
+              <form class="ui form" action="{{ url_for('admin_team_delete', team_id=team.id) }}" method="POST">
+                <button type="submit" class="ui basic negative icon button"><i class="times icon"></i></button>
+              </form>
+            {% endif %}
+          </td>
+      {% else %}
+        <tr><td colspan=9>No teams yet, create one below</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="ui segment">
+    <h2 class="ui header">Create a team</h2>
+
+    <form class="ui form inline" action="{{ url_for('admin_teams_create') }}" method="POST">
+      <div class="ui fluid action input">
+        <input type="text" placeholder="Team name" name="team_name">
+        <button class="ui positive button">Create</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('select.dropdown').dropdown();
+</script>
+{% endblock %}

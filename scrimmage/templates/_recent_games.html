@@ -1,0 +1,38 @@
+<div class="container">
+  <h2>Recent Games</h2>
+  <table class="ui celled condensed table">
+    <thead>
+      <tr>
+        <th>Challenger</th>
+        <th>Opponent</th>
+        <th>Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for game in recent_games %}
+        <tr
+          {% if game.status.value == 'internal_error' %}
+            class="disabled"
+          {% endif %}
+        >
+          <td
+            {% if game.challenger == game.winner %}class="positive"{% elif game.opponent == game.winner %}class="negative"{% endif %}
+          >
+            {{ game.challenger.name }}
+          </td>
+          <td
+            {% if game.opponent == game.winner %}class="positive"{% elif game.challenger == game.winner %}class="negative"{% endif %}
+          >
+            {{ game.opponent.name }}
+          </td>
+          <td>{{ game.create_time | naturaltime }}</td>
+          <td>{{ game.friendly_status() }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan=4>No games have been played yet! Check back in soon</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<br />

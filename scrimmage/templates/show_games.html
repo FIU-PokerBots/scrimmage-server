@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>Your Games</h1>
+  <div class="ui pagination menu">
+    {% if pagination.has_prev %}
+      <a class="item" href="{{ url_for('show_games', page=pagination.prev_num) }}">
+        <i class="angle left icon"></i>
+      </a>
+    {% else %}
+      <div class="disabled item">
+        <i class="angle left icon"></i>
+      </div>
+    {% endif %}
+
+    {% for page in pagination.iter_pages() %}
+      {% if page %}
+        <a class="item {% if page == pagination.page %}active{% endif %}" href="{{ url_for('show_games', page=page) }}">
+          {{ page }}
+        </a>
+      {% else %}
+        <div class="disabled item">
+          ...
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+      <a class="item" href="{{ url_for('show_games', page=pagination.next_num) }}">
+        <i class="angle right icon"></i>
+      </a>
+    {% else %}
+      <div class="disabled item">
+        <i class="angle right icon"></i>
+      </div>
+    {% endif %}
+  </div>
+  <table class="ui striped celled table">
+    <thead>
+      <tr>
+        <th>Challenger</th>
+        <th>C. ELO</th>
+        <th>Opponent</th>
+        <th>O. ELO</th>
+        <th>Creation Time</th>
+        <th>Your bot</th>
+        <th>Status</th>
+        <th>C. Score</th>
+        <th>O. Score</th>
+        <th>Winner</th>
+        <th>Game Log</th>
+        <th>Player Log</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for game in pagination.items %}
+        <tr
+
+          {% if game.status.value == 'created' %}
+            class="disabled"
+          {% elif game.status.value == 'in_progress' %}
+            class="disabled"
+          {% elif game.status.value == 'internal_error' %}
+            class="warning"
+          {% elif game.status.value == 'completed' %}
+            {% if game.winner == g.team %}
+              class="positive"
+            {% else %}
+              class="negative"
+            {% endif %}
+          {% endif %}
+        >
+          <td>{{ game.challenger.name }}</td>
+          <td>
+            {% if game.challenger_elo %}
+              {{ game.challenger_elo|round }}
+            {% else %}
+              N/A
+            {% endif %}
+            </td>
+          <td>{{ game.opponent.name }}</td>
+          <td>
+            {% if game.opponent_elo %}
+              {{ game.opponent_elo|round }}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+          <td>{{ game.create_time }}</td>
+          <td>
+            {% if game.challenger == g.team %}
+              {{ game.challenger_bot.name }}
+            {% else %}
+              {{ game.opponent_bot.name }}
+            {% endif %}
+          </td>
+          <td>{{ game.friendly_status() }}</td>
+          <td>{{ game.challenger_score }}</td>
+          <td>{{ game.opponent_score }}</td>
+          <td>
+            {% if game.status.value == 'completed' %}
+              {{ game.winner.name }}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+          <td>
+            {% if game.log_s3_key is not none %}
+              <a href="{{ url_for('game_log', game_id=game.id) }}">Log</a>
+            {% else %}
+              Not available
+            {% endif %}
+          </td>
+          <td>
+            {% if g.team == game.challenger %}
+              {% if game.challenger_log_s3_key is not none %}
+                <a href="{{ url_for('player_log', game_id=game.id) }}">Log</a>
+              {% else %}
+                Not available
+              {% endif %}
+            {% else %}
+              {% if game.opponent_log_s3_key is not none %}
+                <a href="{{ url_for('player_log', game_id=game.id) }}">Log</a>
+              {% else %}
+                Not available
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan=10>Once you have played some games, they will show up here.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    ELO numbers are pre-match elos.
+  </p>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Admin: Users list</h1>
+  </div>
+
+  <table class="ui striped celled table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>kerberos</th>
+        <th>team</th>
+        <th>change team</th>
+        <th>delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.kerberos }}</td>
+          <td>{{ user.team.name }}</td>
+          <td>
+            <form action="{{ url_for('admin_user_set_team', user_id=user.id) }}" method="POST" style="width: 100%; display: flex; flex-direction: horizontal;">
+              <select class="ui dropdown" name="team_id" style="flex: 1">
+                {% for team in teams|sort(attribute='name') %}
+                  <option value="{{ team.id }}"{% if team == user.team %} selected{% endif %}>{{ team.name }}</option>
+                {% endfor %}
+              </select> &nbsp;
+              <button class="ui button">Change</button>
+            </form>
+          </td>
+          <td style='text-align: center;'>
+            <form class="form-inline" action="{{ url_for('admin_user_delete', user_id=user.id) }}" method="POST">
+              <button type="submit" class="ui basic negative icon button"><i class="times icon"></i></button>
+            </form>
+          </td>
+      {% else %}
+        <tr><td colspan=5>No users yet, create one below</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="ui segment">
+    <h2 class="ui header">Create a user</h2>
+
+    {% if teams|length > 0 %}
+      <form class="ui inline form" action="{{ url_for('admin_users_create') }}" method="POST">
+        <div class="ui three fields">
+          <div class="field">
+            <label>Kerberos</label>
+            <input type="text" placeholder="i.e. jserrino" name="kerberos">
+          </div>
+          <div class="field">
+            <label>Team</label>
+            <select class="ui dropdown" name="team_id">
+              {% for team in teams|sort(attribute='name') %}
+                <option value="{{ team.id }}">{{ team.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button class="ui positive button">Create</button>
+          </div>
+        </div>
+      </form>
+    {% else %}
+      <p>
+        There must be teams to create users.
+      </p>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('select.dropdown').dropdown();
+</script>
+{% endblock %}

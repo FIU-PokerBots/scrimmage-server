@@ -1,0 +1,3 @@
+[submodule "deps/engine-2025"]
+    path = deps/engine-2025
+    url = https://github.com/mitpokerbots/engine-2025.git

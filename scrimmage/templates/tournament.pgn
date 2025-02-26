@@ -1,0 +1,11 @@
+{% for game in games %}
+[Event "{{ tournament.title }}"]
+[Site "Scrimmage Server"]
+[Date "2019.01.01"]
+[White "{{ game.bot_a_id }}"]
+[Black "{{ game.bot_b_id }}"]
+[Result "{{ '1-0' if game.winner_id == game.bot_a_id else '0-1' }}"]
+
+1. d4 {{ '1-0' if game.winner_id == game.bot_a_id else '0-1' }}
+
+{% endfor %}

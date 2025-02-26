@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1>Admin: Announcements</h1>
+
+{% if flash %}
+  <div class="ui {{ flash_level }} message">
+    {{ flash }}
+  </div>
+{% endif %}
+
+<h2 class="ui dividing header">Make an announcement</h2>
+
+<div class="ui segment">
+  <form class="ui form" method="POST">
+    <input type="hidden" name="action" value="create" />
+    <div class="field">
+      <label>Title</label>
+      <input type="text" name="title" placeholder="Example announcement">
+    </div>
+    <div class="field">
+      <label>Announcement text</label>
+      <textarea name="text" rows="2"></textarea>
+    </div>
+      <div class="field">
+        <div class="ui toggle checkbox">
+          <input type="checkbox" name="is_public" tabindex="0">
+          <label>Make this announcement public (visible when not logged in)</label>
+        </div>
+      </div>
+    <button class="ui primary button" type="submit">Announce</button>
+  </form>
+</div>
+
+<h2 class="ui dividing header">Edit announcements</h2>
+{% for announcement in announcements %}
+  <div class="ui top attached segment">
+    <h3 class="ui header">
+      {{ announcement.title }}
+      {% if announcement.is_public %}
+        <span class="ui red label">Public</span>
+      {% endif %}
+      <div class="sub header">{{ announcement.create_time | naturaltime }} by {{ announcement.author_kerberos }}</div>
+    </h3>
+    <p>
+      {{ announcement.text }}
+    </p>
+    <p>
+      <form method="POST">
+        <input type="hidden" name="action" value="delete" />
+        <input type="hidden" name="announcement_id" value={{ announcement.id }} />
+        <button class="ui mini basic negative button" type="submit">Delete</button>
+      </form>
+    </p>
+  </div>
+{% else %}
+  <p>
+    There are no announcements to show.
+  </p>
+{% endfor %}
+<br />
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('.ui.checkbox').checkbox();
+</script>
+{% endblock %}

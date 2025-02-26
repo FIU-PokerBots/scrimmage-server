@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Admin: Settings</h1>
+  </div>
+
+  {% if flash %}
+    <div class="ui {{ flash_level }} message">
+      {{ flash }}
+    </div>
+  {% endif %}
+
+  <table class="ui celled striped table">
+    <thead>
+      <tr>
+        <th class="four wide">key</th>
+        <th class="six wide">description</th>
+        <th class="two wide">value</th>
+        <th class="four wide">change value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key in g.settings.items()|sort %}
+        <tr>
+          <td><code>{{ key }}</code></td>
+          <td>{{ g.settings.description(key) }}</td>
+          <td>{{ g.settings[key] }}</td>
+          <td>
+            <form class="ui form inline" method="POST">
+              <div class="ui fluid action input">
+                <input type="text" name="value" placeholder="new value">
+                <button class="ui submit button">Change</button>
+              </div>
+              <input type="hidden" name="key" value="{{ key }}">
+            </form>
+          </td>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

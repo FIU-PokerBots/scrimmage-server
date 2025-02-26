@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Sponsor Access - {{ team.name }}</h1>
+
+<div>
+<a class="ui left labeled icon button" href="{{ url_for('sponsor_index') }}">
+  <i class="left arrow icon"></i>
+  Back
+</a>
+</div>
+<br />
+
+<div class="ui grid container">
+  <div class="eight wide column">
+    <h2>Info</h2>
+    <div>
+      <h3>Statistics</h3>
+      <div class="ui four small statistics">
+        <div class="statistic">
+          <div class="value">
+            {{ team.elo|int }}
+          </div>
+          <div class="label">
+            ELO
+          </div>
+        </div>
+        <div class="green statistic">
+          <div class="value">
+            {{ team.wins }}
+          </div>
+          <div class="label">
+            Wins
+          </div>
+        </div>
+        <div class="red statistic">
+          <div class="value">
+            {{ team.losses }}
+          </div>
+          <div class="label">
+            Losses
+          </div>
+        </div>
+        <div class="statistic">
+          <div class="value">
+            {{ team.wins + team.losses }}
+          </div>
+          <div class="label">
+            Total Games
+          </div>
+        </div>
+      </div>
+    </div>
+    <h3 class="ui header">Team</h3>
+    <div>
+      <table class="ui striped celled table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Class Year</th>
+            <th>Department</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for member in team.members %}
+            <tr>
+              <td>{{ member.full_name or 'Unavailable' }}</td>
+              <td>{{ member.kerberos }}@mit.edu</td>
+              <td>
+                {% if member.class_year == "1" %}
+                  Freshman
+                {% elif member.class_year == "2" %}
+                  Sophomore
+                {% elif member.class_year == "3" %}
+                  Junior
+                {% elif member.class_year == "4" %}
+                  Senior
+                {% elif member.class_year == "G" %}
+                  Grad Student
+                {% else %}
+                  {{ member.class_year }}
+                {% endif %}
+              </td>
+              <td>{{ member.department or 'Unavailable' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="eight wide column">
+    <h2>Bots</h2>
+    <p>
+      Their current bot is highlighted below.
+    </p>
+    <table class="ui compact celled striped table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Wins</th>
+          <th>Losses</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bot in team.active_bots()|sort(attribute='create_time') %}
+          <tr{% if team.current_bot == bot %} class="positive"{% endif %}>
+            <td>{{ bot.name }}</td>
+            <td>{{ bot.wins }}</td>
+            <td>{{ bot.losses }}</td>
+            <td>{{ bot.create_time }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan=4>They don't have any bots.
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<h2>Charts</h2>
+{% include '_charts.html' %}
+
+{% endblock %}

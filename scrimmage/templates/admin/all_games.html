@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>Admin: All games</h1>
+  <div class="ui pagination menu">
+    {% if pagination.has_prev %}
+      <a class="item" href="{{ url_for('admin_all_games', page=pagination.prev_num) }}">
+        <i class="angle left icon"></i>
+      </a>
+    {% else %}
+      <div class="disabled item">
+        <i class="angle left icon"></i>
+      </div>
+    {% endif %}
+
+    {% for page in pagination.iter_pages() %}
+      {% if page %}
+        <a class="item {% if page == pagination.page %}active{% endif %}" href="{{ url_for('admin_all_games', page=page) }}">
+          {{ page }}
+        </a>
+      {% else %}
+        <div class="disabled item">
+          ...
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+      <a class="item" href="{{ url_for('admin_all_games', page=pagination.next_num) }}">
+        <i class="angle right icon"></i>
+      </a>
+    {% else %}
+      <div class="disabled item">
+        <i class="angle right icon"></i>
+      </div>
+    {% endif %}
+  </div>
+  <table class="ui striped celled table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Status</th>
+        <th>Challenger</th>
+        <th>C. ELO</th>
+        <th>C. Bot</th>
+        <th>Opponent</th>
+        <th>O. ELO</th>
+        <th>O. Bot</th>
+        <th>Creation Time</th>
+        <th>C. Score</th>
+        <th>O. Score</th>
+        <th>Winner</th>
+        <th>Game Log</th>
+        <th>C. Log</th>
+        <th>O. Log</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for game in pagination.items %}
+        <tr
+          {% if game.status.value == 'created' %}
+            class="disabled"
+          {% elif game.status.value == 'in_progress' %}
+            class="disabled"
+          {% elif game.status.value == 'internal_error' %}
+            class="negative"
+          {% elif game.status.value == 'completed' %}
+            class="positive"
+          {% endif %}
+        >
+          <td>{{ game.id }}</td>
+          <td>
+            {{ game.friendly_status() }}
+          </td>
+          <td>{{ game.challenger.name }}</td>
+          <td>
+            {% if game.challenger_elo %}
+              {{ game.challenger_elo|int }}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+          <td>{{ game.challenger_bot.name }}</th>
+          <td>{{ game.opponent.name }}</td>
+          <td>
+            {% if game.opponent_elo %}
+              {{ game.opponent_elo|int }}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+          <td>{{ game.opponent_bot.name }}</td>
+          <td>{{ game.create_time }}</td>
+          <td>{{ game.challenger_score }}</td>
+          <td>{{ game.opponent_score }}</td>
+          <td>
+            {% if game.status.value == 'completed' %}
+              {{ game.winner.name }}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+          <td>
+            {% if game.log_s3_key is not none %}
+              <a href="{{ url_for('admin_game_log', game_id=game.id) }}">Log</a>
+            {% else %}
+              Not available
+            {% endif %}
+          </td>
+          <td>
+            {% if game.challenger_log_s3_key is not none %}
+              <a href="{{ url_for('admin_challenger_log', game_id=game.id) }}">Log</a>
+            {% else %}
+              Not available
+            {% endif %}
+          </td>
+          <td>
+            {% if game.opponent_log_s3_key is not none %}
+              <a href="{{ url_for('admin_opponent_log', game_id=game.id) }}">Log</a>
+            {% else %}
+              Not available
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan=11>Once you have played some games, they will show up here.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    ELO numbers are pre-match elos.
+  </p>
+{% endblock %}

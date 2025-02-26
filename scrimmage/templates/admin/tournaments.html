@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>Admin: Tournament Management</h1>
+  {% if flash %}
+    <div class="ui {{ flash_level }} message">
+      {{ flash }}
+    </div>
+  {% endif %}
+
+  <h2 class="ui dividing header">Control tournaments</h2>
+
+  {% for tournament in tournaments %}
+    <div class="ui segments">
+      <div class="ui segment
+        {% if tournament.status.value == 'created' %}
+          black
+        {% elif tournament.status.value == 'spawning' %}
+          yellow
+        {% elif tournament.status.value == 'spawned' %}
+          black
+        {% elif tournament.status.value == 'done' %}
+          green
+        {% endif %}
+      ">
+        <h3 class="ui dividing header">
+          {{ tournament.title }}
+          {% if tournament.is_private %}
+            <span class="ui red label">Private</span>
+          {% else %}
+            <span class="ui green label">Public</span>
+          {% endif %}
+          <div class="sub header">
+            {{ tournament.create_time | naturaltime }}
+          </div>
+        </h3>
+        <div class="ui stackable divided grid container">
+          <div class="ui six wide column">
+            <div class="ui two small statistics">
+              <div class="statistic">
+                <div class="value">
+                  {{ tournament.participants|length }}
+                </div>
+                <div class="label">
+                  Participants
+                </div>
+              </div>
+              <div class="statistic">
+                <div class="value">
+                  {{ tournament.games_per_pair }}
+                </div>
+                <div class="label">
+                  Games/Pair
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui ten wide column">
+            <div class="ui four small statistics">
+              <div class="statistic">
+                <div class="value">
+                  {{ tournament.num_games_queued() }}
+                </div>
+                <div class="label">
+                  Queued
+                </div>
+              </div>
+              <div class="statistic">
+                <div class="value">
+                  {{ tournament.num_games_running() }}
+                </div>
+                <div class="label">
+                  Running
+                </div>
+              </div>
+              <div class="green statistic">
+                <div class="value">
+                  {{ tournament.num_games_completed() }}
+                </div>
+                <div class="label">
+                  Completed
+                </div>
+              </div>
+              <div class="red statistic">
+                <div class="value">
+                  {{ tournament.num_games_errored() }}
+                </div>
+                <div class="label">
+                  Errored
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="ui segment">
+        <div class="ui grid container">
+          <div class="four wide column">
+            Tournament controls appear here, as available.
+          </div>
+          {% if not tournament.is_in_progress() and tournament.status.value == 'spawned' %}
+            <div class="four wide column">
+              <form class='ui inline form' action="{{ url_for('admin_handle_failed', tournament_id=tournament.id) }}" method="POST">
+                <input type="hidden" name="action" value="generate_elo" />
+                <button type="submit" class="ui basic positive labeled icon button">
+                  <i class="calculator icon"></i>
+                  Calculate ELO
+                </button>
+              </form>
+            </div>
+          {% endif %}
+          {% if tournament.num_games_errored() > 0 and tournament.status.value != 'done' %}
+            <div class="four wide column">
+              <form class='ui inline form' action="{{ url_for('admin_handle_failed', tournament_id=tournament.id) }}" method="POST">
+                <input type="hidden" name="action" value="requeue" />
+                <button type="submit" class="ui basic negative labeled icon button">
+                  <i class="refresh icon"></i>
+                  Re-queue failed games
+                </button>
+              </form>
+            </div>
+            <div class="four wide column">
+              <form class='ui inline form' action="{{ url_for('admin_handle_failed', tournament_id=tournament.id) }}" method="POST">
+                <input type="hidden" name="action" value="delete" />
+                <button type="submit" class="ui basic negative labeled icon button">
+                  <i class="times icon"></i>
+                  Delete failed games
+                </button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <p>
+      There are no tournaments to show.
+    </p>
+  {% endfor %}
+
+  <h2 class="ui dividing header">Spawn</h2>
+  <div class="ui top attached segment">
+    <h3 class="ui dividing header">Spawn a tournament</h3>
+    <div>
+      <form class="ui form" method="POST" action="{{ url_for('admin_tournaments_spawn') }}">
+        <div class="field">
+          <label>Tournament name</label>
+          <input type="text" id="inputName" placeholder="Week 1 cool boy tournament" name='title'>
+        </div>
+        <div class="field">
+          <label>Games per pair</label>
+          <input type="number" id="games_per_pair" value='0' name='games_per_pair'>
+        </div>
+        <div class="inline field">
+          <div class="ui toggle checkbox">
+            <input type="checkbox" name="is_private">
+            <label>Private tournament? (Only visible to admins and sponsors)</label>
+          </div>
+        </div>
+        <button type="submit" class="ui primary button">Spawn tournament</button>
+      </form>
+    </div>
+  </div>
+  <div class="ui bottom attached info message">
+    <p>We run games for every pair bots, N times.</p>
+    <p>There are {{ num_teams }} eligible teams.</p>
+    <p>
+      With the current setup, we expect to run <strong><span id="totalGames">0</span></strong> games.
+    </p>
+    <p>We recommend at least 10 games for every pair of teams.</p>
+  </div>
+
+  <script>
+    document.getElementById("games_per_pair").oninput = function(e) {
+      document.getElementById("totalGames").innerText = "" + ( {{ num_teams }} * ( {{num_teams}} - 1) * +e.target.value / 2);
+    }
+  </script>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('.ui.checkbox').checkbox();
+</script>
+{% endblock %}
+

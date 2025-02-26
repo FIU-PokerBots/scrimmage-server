@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>Welcome to the MIT Pokerbots Scrimmage Server!</h1>
+
+  {% if not join_request %}
+  <div class="ui placeholder segment">
+    <div class="ui two column center aligned grid">
+      <div class="ui vertical divider">Or</div>
+      <div class="middle aligned row">
+        <div class="column">
+          <div class="ui icon header">
+            <i class="group icon"></i>
+            Join a team
+            <div class="sub header">
+              For most participants.
+            </div>
+          </div>
+          <form class="ui inline form" action="{{ url_for('request_team') }}" method="POST">
+            <div>
+              <select class="ui dropdown {% if teams|length == 0 %}disabled{% endif %}" name="team_id" style="display: inline-block; max-width: 50%">
+                {% for team in teams|sort(attribute='name') %}
+                  <option value='{{ team.id }}'>
+                    {{ team.name }}
+                  </option>
+                {% else %}
+                  <option>No teams available to join</option>
+                {% endfor %}
+              </select>
+              <button class="ui basic primary button {% if teams|length == 0 %}disabled{% endif %}" style="display: inline-block;">Request</button>
+            </div>
+          </form>
+        </div>
+        <div class="column">
+          <div class="ui icon header">
+            <i class="plus circle icon"></i>
+            Create a team
+            <div class="sub header">
+              For team leaders and solo competitors.
+            </div>
+          </div>
+          <form class="ui form inline" action="{{ url_for('create_team') }}" method="POST">
+            <div class="ui fluid action input" style="max-width: 70%; margin: 0 auto;">
+              <input type="text" placeholder="Team name" name="team_name">
+              <button class="ui basic primary button">Create</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="ui placeholder segment">
+    <div class="ui icon header">
+      <i class="group icon"></i>
+      Request pending - {{ join_request.team.name }}
+      <div class="sub header">
+        You have requested to join {{ join_request.team.name }}. They must accept before you can join.
+      </div>
+    </div>
+    <form class="ui form inline" action="{{ url_for('cancel_team_request') }}" method="POST">
+      <button class="ui basic negative button">Cancel request</button>
+    </form>
+  </div>
+  {% endif %}
+
+
+  {% with announce_title="Most Recent Announcement" %}
+    {% include '_announcements.html' %}
+  {% endwith %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('select.dropdown').dropdown();
+</script>
+{% endblock %}

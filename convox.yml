@@ -1,0 +1,65 @@
+services:
+  web:
+    build:
+      path: .
+      manifest: ./dockerfiles/web/Dockerfile
+    command: gunicorn --certfile=cert.crt --keyfile=cert.key scrimmage:app -w 3 -b 0.0.0.0:8000 --timeout 90
+    domain: scrimmage.pokerbots.org
+    environment:
+      - PRODUCTION=True
+      - SQLALCHEMY_DATABASE_URI
+      - CELERY_BROKER_URL
+      - SECRET_KEY
+      - AUTH_KEY
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - S3_REGION
+      - S3_BUCKET
+    health:
+      grace: 15
+      interval: 15
+      path: /check
+      timeout: 30
+    port: https:8000
+    scale:
+      cpu: 256
+      memory: 512
+  worker:
+    build:
+      path: .
+      manifest: ./dockerfiles/worker/Dockerfile
+    command: celery -A scrimmage.celery_app worker --loglevel=info --concurrency=1 --without-gossip
+    environment:
+      - PRODUCTION=True
+      - SQLALCHEMY_DATABASE_URI
+      - CELERY_BROKER_URL
+      - SECRET_KEY
+      - AUTH_KEY
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - S3_REGION
+      - S3_BUCKET
+    scale:
+      cpu: 1024
+      memory: 1024
+  monitoring:
+    build:
+      path: .
+      manifest: ./dockerfiles/web/Dockerfile
+    command: celery flower -A scrimmage.celery_app --address=0.0.0.0
+    domain: flower.pokerbots.org
+    environment:
+      - PRODUCTION=True
+      - SQLALCHEMY_DATABASE_URI
+      - CELERY_BROKER_URL
+      - SECRET_KEY
+      - FLOWER_BASIC_AUTH
+    health:
+      grace: 15
+      interval: 15
+      path: /healthcheck
+      timeout: 30
+    port: 5555
+    scale:
+      cpu: 256
+      memory: 512
