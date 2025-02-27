@@ -9,6 +9,7 @@ import humanize
 from pytz import timezone
 import datetime
 
+# Add your kerberos_id to the list of ADMINS --> then run localhost:8000/setadmin/<kerberos_id> to login as admin
 ADMINS = {'henriquepitta'}
 
 def is_admin(kerberos):
