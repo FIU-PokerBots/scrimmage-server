@@ -28,7 +28,7 @@ from scrimmage.models import (
 from scrimmage.settings import settings
 
 ENGINE_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.pardir, "deps", "engine-2025", "engine.py")
+    os.path.join(os.path.dirname(__file__), os.pardir, "deps", "test_engine", "test_engine.py")
 )
 MAX_ZIP_SIZE = 1024 * 1024 * 1024
 
