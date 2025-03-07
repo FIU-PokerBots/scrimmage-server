@@ -78,26 +78,34 @@ def _download_and_verify(bot, tmp_dir):
     with open(bot_zip_path, "wb") as bot_zip_file:
         bot_zip_file.write(get_s3_object(bot.s3_key).read())
 
+    print(f"Downloaded bot zip to: {bot_zip_path}")  # Debug print
+
     valid_zip, msg = _verify_zip(bot_zip_path)
     if not valid_zip:
+        print(f"Invalid zip file: {msg}")  # Debug print
         return False, msg
 
     try:
         with zipfile.ZipFile(bot_zip_path, "r") as z:
             z.extractall(bot_extract_dir)
 
+        print(f"Extracted bot zip to: {bot_extract_dir}")  # Debug print
+
         bot_dir = None
         for root, dirs, files in os.walk(bot_extract_dir):
+            print(f"Checking directory: {root}")  # Debug print
             if "commands.json" in files:
                 bot_dir = root
-                print(bot_dir)
+                print(f"Found commands.json in: {bot_dir}")  # Debug print
                 break
 
         if bot_dir is None:
+            print("Bot dir has no commands.json")  # Debug print
             return False, "Bot dir has no commands.json"
 
         return True, bot_dir
-    except OSError:
+    except OSError as e:
+        print(f"OSError: {e}")  # Debug print
         return False, "Bot zip is missing files. (Maybe missing commands.json?)"
 
 
@@ -174,11 +182,15 @@ def _read_logfile(filename, log_filesize):
 
 
 def _run_bots(bot_a, bot_a_name, bot_b, bot_b_name):
+    print(f"Running bots: {bot_a_name} vs {bot_b_name}")  # Debug print
     with tempfile.TemporaryDirectory() as tmp_dir:
         is_valid_a_bot, a_path = _download_and_verify(bot_a, tmp_dir)
+        print(f"Bot A valid: {is_valid_a_bot}, Path: {a_path}")  # Debug print
         is_valid_b_bot, b_path = _download_and_verify(bot_b, tmp_dir)
+        print(f"Bot B valid: {is_valid_b_bot}, Path: {b_path}")  # Debug print
 
         if not is_valid_a_bot and not is_valid_b_bot:
+            print("Both bots are invalid, so the game is tied")  # Debug print
             # These are actually logs
             return (
                 (None, None),
@@ -187,6 +199,7 @@ def _run_bots(bot_a, bot_a_name, bot_b, bot_b_name):
                 b_path,
             )
         elif not is_valid_a_bot:
+            print(f"Bot {bot_a_name} is invalid, so {bot_b_name} wins.")  # Debug print
             return (
                 (None, 0),
                 "Bot {} is invalid, so {} wins.".format(bot_a_name, bot_b_name),
@@ -194,6 +207,7 @@ def _run_bots(bot_a, bot_a_name, bot_b, bot_b_name):
                 None,
             )
         elif not is_valid_b_bot:
+            print(f"Bot {bot_b_name} is invalid, so {bot_a_name} wins.")  # Debug print
             return (
                 (0, None),
                 "Bot {} is invalid, so {} wins.".format(bot_b_name, bot_a_name),
@@ -203,6 +217,7 @@ def _run_bots(bot_a, bot_a_name, bot_b, bot_b_name):
 
         game_dir = os.path.join(tmp_dir, "game")
         os.mkdir(game_dir)
+        print(f"Created game directory: {game_dir}")  # Debug print
 
         with open(os.path.join(game_dir, "config.py"), "w") as config_file:
             config_txt = render_template(
@@ -217,22 +232,27 @@ def _run_bots(bot_a, bot_a_name, bot_b, bot_b_name):
                 player_log_size_limit=int(settings["player_log_size_limit"]),
             )
             config_file.write(config_txt)
+            print(f"Written config file: {config_txt}")  # Debug print
 
+        print(f"Running engine with command: python {ENGINE_PATH}")  # Debug print
         subprocess.check_call(
             ["python", ENGINE_PATH], cwd=game_dir, env=_get_environment()
         )
 
         with open(os.path.join(game_dir, "gamelog.txt"), "r") as game_log_file:
             game_log = game_log_file.read()
+            print(f"Read game log: {game_log[:500]}...")  # Debug print (showing first 500 characters)
 
         player_log_filesize = int(settings["maximum_player_log_file_size"])
 
         bot_a_log = _read_logfile(
             os.path.join(game_dir, "{}.txt".format(bot_a_name)), player_log_filesize
         )
+        print(f"Read bot A log: {bot_a_log[:500]}...")  # Debug print (showing first 500 characters)
         bot_b_log = _read_logfile(
             os.path.join(game_dir, "{}.txt".format(bot_b_name)), player_log_filesize
         )
+        print(f"Read bot B log: {bot_b_log[:500]}...")  # Debug print (showing first 500 characters)
 
         return _get_scores(game_log), game_log, bot_a_log, bot_b_log
 
@@ -288,6 +308,8 @@ def play_game_task(game_id):
     opponent_bot = game.opponent_bot
     opponent_bot_id = opponent_bot.id
     opponent_name = "B"
+
+    print(f"Starting play_game_task with bots: {challenger_bot}, {opponent_bot}")  # Debug print
 
     if opponent_bot_id == challenger_bot_id:
         return
