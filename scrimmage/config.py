@@ -24,7 +24,7 @@ class ProdConfig(Config):
 class DevConfig(Config):
   ENV = 'development'
   DEBUG = True
-  SQLALCHEMY_DATABASE_URI = 'postgresql://henriquepitta:@localhost:5432/pbots'
+  SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:newpassword@localhost:5432/pbots'
   SQLALCHEMY_TRACK_MODIFICATIONS = True
   SECRET_KEY = 'SUPER SECRET KEY'
   PREFERRED_URL_SCHEME = 'http'
