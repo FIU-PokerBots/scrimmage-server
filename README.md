@@ -48,8 +48,11 @@ celery -A scrimmage.celery_app flower
 ```bash
 # setting up MinIO S3-Bucket for Dev Mode
 
-# Download MinIO
+# Download MinIO for mac
 curl -O https://dl.min.io/server/minio/release/darwin-amd64/minio
+
+# Download MinIO for Linux
+curl -O https://dl.min.io/server/minio/release/linux-amd64/minio
 chmod +x minio
 
 # Set up local_storage directory in project root

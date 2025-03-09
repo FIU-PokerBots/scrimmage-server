@@ -10,7 +10,7 @@ from pytz import timezone
 import datetime
 
 # Add your kerberos_id to the list of ADMINS --> then run localhost:8000/setadmin/<kerberos_id> to login as admin
-ADMINS = {'henriquepitta'}
+ADMINS = {'henriquepitta', 'npastrana'}
 
 def is_admin(kerberos):
   return kerberos in ADMINS or kerberos in [kerb.lower().strip() for kerb in settings['extra_admins'].split(',')]

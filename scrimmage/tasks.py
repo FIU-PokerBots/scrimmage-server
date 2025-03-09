@@ -217,13 +217,58 @@ def _run_bots(bot_a, bot_a_name, bot_b, bot_b_name):
 
         game_dir = os.path.join(tmp_dir, "game")
         os.mkdir(game_dir)
-        print(f"Created game directory: {game_dir}")  # Debug print
-
+        
+        # Extensive debugging information about the bot directories
+        print(f"Bot A extracted to: {a_path}")
+        print(f"Bot B extracted to: {b_path}")
+        
+        # Check if commands.json exists in the extracted bot directories
+        print(f"commands.json exists in bot A: {os.path.exists(os.path.join(a_path, 'commands.json'))}")
+        print(f"commands.json exists in bot B: {os.path.exists(os.path.join(b_path, 'commands.json'))}")
+        
+        # List files in the bot directories to see what's actually there
+        print(f"Files in bot A directory:")
+        for root, dirs, files in os.walk(a_path, topdown=True):
+            for name in files:
+                if name == "commands.json":
+                    print(f"  Found commands.json at: {os.path.join(root, name)}")
+        
+        print(f"Files in bot B directory:")
+        for root, dirs, files in os.walk(b_path, topdown=True):
+            for name in files:
+                if name == "commands.json":
+                    print(f"  Found commands.json at: {os.path.join(root, name)}")
+        
+        # Create symbolic links with expected names
+        player1_link = os.path.join(game_dir, "PlayerA")
+        player2_link = os.path.join(game_dir, "PlayerB")
+        
+        # Clean up existing links
+        for link_path in [player1_link, player2_link]:
+            if os.path.exists(link_path):
+                if os.path.islink(link_path):
+                    os.unlink(link_path)
+                else:
+                    import shutil
+                    shutil.rmtree(link_path)
+        
+        # Create symbolic links and verify they're created correctly
+        os.symlink(a_path, player1_link)
+        os.symlink(b_path, player2_link)
+        
+        print(f"Created symlink: {player1_link} -> {os.path.realpath(player1_link)}")
+        print(f"Created symlink: {player2_link} -> {os.path.realpath(player2_link)}")
+        
+        # Verify commands.json can be accessed through the symbolic links
+        print(f"commands.json via symlink A: {os.path.exists(os.path.join(player1_link, 'commands.json'))}")
+        print(f"commands.json via symlink B: {os.path.exists(os.path.join(player2_link, 'commands.json'))}")
+        
+        # Create config as before...
         with open(os.path.join(game_dir, "config.py"), "w") as config_file:
             config_txt = render_template(
                 "config.txt",
-                bot_a={"name": bot_a_name, "path": a_path},
-                bot_b={"name": bot_b_name, "path": b_path},
+                bot_a={"name": bot_a_name, "path": "./player2_monte_carlo"},
+                bot_b={"name": bot_b_name, "path": "./mccfr"},
                 game_big_blind=int(settings["game_big_blind"]),
                 game_small_blind=int(settings["game_small_blind"]),
                 game_starting_stack=int(settings["game_starting_stack"]),
@@ -232,29 +277,37 @@ def _run_bots(bot_a, bot_a_name, bot_b, bot_b_name):
                 player_log_size_limit=int(settings["player_log_size_limit"]),
             )
             config_file.write(config_txt)
-            print(f"Written config file: {config_txt}")  # Debug print
-
-        print(f"Running engine with command: python {ENGINE_PATH}")  # Debug print
-        subprocess.check_call(
-            ["python", ENGINE_PATH], cwd=game_dir, env=_get_environment()
-        )
-
-        with open(os.path.join(game_dir, "gamelog.txt"), "r") as game_log_file:
-            game_log = game_log_file.read()
-            print(f"Read game log: {game_log[:500]}...")  # Debug print (showing first 500 characters)
-
-        player_log_filesize = int(settings["maximum_player_log_file_size"])
-
-        bot_a_log = _read_logfile(
-            os.path.join(game_dir, "{}.txt".format(bot_a_name)), player_log_filesize
-        )
-        print(f"Read bot A log: {bot_a_log[:500]}...")  # Debug print (showing first 500 characters)
-        bot_b_log = _read_logfile(
-            os.path.join(game_dir, "{}.txt".format(bot_b_name)), player_log_filesize
-        )
-        print(f"Read bot B log: {bot_b_log[:500]}...")  # Debug print (showing first 500 characters)
-
-        return _get_scores(game_log), game_log, bot_a_log, bot_b_log
+        
+        # Print the generated config file for verification
+        print(f"Generated config file:")
+        with open(os.path.join(game_dir, "config.py"), "r") as config_file:
+            print(config_file.read())
+        
+        try:
+            # Run engine and process results as before...
+            subprocess.check_call(
+                ["python", ENGINE_PATH], cwd=game_dir, env=_get_environment()
+            )
+            
+            with open(os.path.join(game_dir, "gamelog.txt"), "r") as game_log_file:
+                game_log = game_log_file.read()
+            
+            player_log_filesize = int(settings["maximum_player_log_file_size"])
+            
+            bot_a_log = _read_logfile(
+                os.path.join(game_dir, "{}.txt".format(bot_a_name)), player_log_filesize
+            )
+            bot_b_log = _read_logfile(
+                os.path.join(game_dir, "{}.txt".format(bot_b_name)), player_log_filesize
+            )
+            
+            return _get_scores(game_log), game_log, bot_a_log, bot_b_log
+        finally:
+            # Clean up
+            if os.path.exists(player1_link):
+                os.unlink(player1_link)
+            if os.path.exists(player2_link):
+                os.unlink(player2_link)
 
 
 def _run_bots_and_upload(bot_a, bot_a_name, bot_b, bot_b_name):

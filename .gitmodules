@@ -1,3 +1,6 @@
+[submodule "deps/test_engine"]
+	path = deps/test_engine
+	url = https://github.com/FIU-PokerBots/test_engine.git
 
 [submodule "deps/test_engine"]
 	path = deps/test_engine
