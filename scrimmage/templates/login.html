@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FIU Login</title>
+</head>
+<body>
+    <h1>FIU Login</h1>
+    <form method="POST" action="{{ url_for('send_verification_email') }}">
+        <label for="email">FIU Email:</label>
+        <input type="email" name="email" placeholder="example@fiu.edu" required>
+        <button type="submit">Send Verification Email</button>
+    </form>
+</body>
+</html>
