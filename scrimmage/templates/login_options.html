@@ -1,0 +1,18 @@
+{% extends "login_layout.html" %}
+
+{% block content %}
+    <h1>FIU Login</h1>
+    <p>Choose an option:</p>
+    <form action="{{ url_for('first_time_login') }}" method="GET">
+        <button type="submit">First Time Logging In</button>
+    </form>
+    <form action="{{ url_for('existing_account_login') }}" method="GET">
+        <button type="submit">Already Created Account</button>
+    </form>
+    <!-- Flash Messages -->
+    {% if flash %}
+        <div class="ui {{ flash_level }} message">
+            {{ flash }}
+        </div>
+    {% endif %}
+{% endblock %}

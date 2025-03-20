@@ -1,0 +1,36 @@
+<div class="ui inverted menu" style="border-radius: 0">
+    <div class="ui container">
+      <a href="{{ url_for('index') }}" class="header item">
+        <img class="logo" src="{{ url_for('static', filename='img/logo_clear.png') }}">
+        Pokerbots Scrimmage
+      </a>
+      <!-- Header stuff goes here -->
+      <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %} item">Home</a>
+      {% if g.is_logged_in %}
+        <a href="{{ url_for('announcements') }}" class="{% if request.endpoint == 'announcements' %}active{% endif %} item">Announcements</a>
+      {% endif %}
+      {% if g.team %}
+        <a href="{{ url_for('manage_team') }}" class="{% if request.endpoint == 'manage_team' %}active{% endif %} item">Manage Team</a>
+        <a href="{{ url_for('show_games') }}" class="{% if request.endpoint == 'show_games' %}active{% endif %} item">Your Games</a>
+        <a href="{{ url_for('show_tournaments') }}" class="{% if request.endpoint == 'show_tournaments' %}active{% endif %} item">Tournaments</a>
+        <a href="{{ url_for('team_charts') }}" class="{% if request.endpoint == 'team_charts' %}active{% endif %} item">Charts</a>
+      {% endif %}
+        <a href="https://playground.pokerbots.org" class="item">Playground</a>
+      {% if g.is_admin %}
+        <a href="{{ url_for('admin_index') }}" class="{% if request.endpoint == 'admin_index' %}active{% endif %} item">Admin</a>
+        <a href="{{ url_for('sponsor_index') }}" class="{% if request.endpoint == 'sponsor_index' %}active{% endif %} item">Sponsor</a>
+      {% endif %}
+      {% if g.is_logged_in %}
+        <a href="{{ url_for('logout') }}" class="right item">
+          Log out {{ g.kerberos }}
+          {% if g.kerberos != session['real_kerberos'] %}
+            ({{ session['real_kerberos'] }})
+          {% endif %}
+        </a>
+      {% else %}
+        <div></div>
+      {% endif %}
+      <!-- end header stuff -->
+    </div>
+  </div>
+  

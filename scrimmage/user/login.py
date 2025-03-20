@@ -4,15 +4,16 @@ from hashlib import sha256
 from urllib.parse import urlparse, urlunparse
 from urllib.parse import urlencode
 import smtplib
+from scrimmage.decorators import set_flash
 
 from scrimmage import app
 
 
 def generate_token(email, secret_key):
-    timestamp = str(int(time.time()))  # Current time in seconds
-    data = email + timestamp + secret_key
-    token = sha256(data.encode('utf-8')).hexdigest()
-    return token, timestamp
+  timestamp = str(int(time.time()))  # Current time in seconds
+  data = email + timestamp + secret_key
+  token = sha256(data.encode('utf-8')).hexdigest()
+  return token, timestamp
 
 
 def _verify_token(email, timestamp, token):
@@ -46,13 +47,28 @@ def _create_redirect(**kwargs):
 
 @app.route('/login')
 def login():
-  if request.method == 'GET':
-    return render_template('login.html')
-  # if 'next' in request.args:
-  #   return redirect(_create_redirect(next=request.args['next']))
-  # else:
-  #   return redirect(_create_redirect())
+  return render_template('login_options.html')
 
+@app.route('/first_time_login', methods=['GET'])
+def first_time_login():
+  return render_template('login_email.html')  # This is the current email input page
+
+@app.route('/existing_account_login', methods=['GET', 'POST'])
+def existing_account_login():
+  if request.method == 'POST':
+    email = request.form['email']
+    password = request.form['password']
+
+    if email == "test@fiu.edu" and password == "password123":  # Example validation
+      session['kerberos'] = email.split('@')[0]
+      session['real_kerberos'] = session['kerberos']
+      # set_flash('You have successfully logged in!', level='success')
+      return redirect(url_for('index')) # Login successful
+    else:
+      set_flash('Invalid email or password.', level='warning')
+      return redirect(url_for('existing_account_login'))
+
+  return render_template('existing_account_login.html')
 
 @app.route('/login/return')
 def login_return():
@@ -70,8 +86,8 @@ def login_return():
 def send_verification_email():
   email = request.form['email']
   if not email.endswith('@fiu.edu'):
-      flash('Please use a valid @fiu.edu email address.')
-      return redirect(url_for('login'))
+    set_flash('Please use a valid @fiu.edu email address.', level='warning')
+    return render_template('login_email.html')  # Pass the email back to pre-fill the form
 
   # Generate a verification token
   secret_key = app.config['SECRET_KEY']
@@ -83,7 +99,7 @@ def send_verification_email():
   # Send the email
   send_email(email, verification_link)
 
-  flash('A verification email has been sent to your FIU email address.')
+  set_flash('A verification email has been sent to your FIU email address.', level='success')
   return redirect(url_for('login'))
 
 
@@ -102,7 +118,7 @@ def send_email(to_email, verification_link):
       server.sendmail(sender_email, to_email, message)
     print('Email sent successfully.')
   except Exception as e:
-    flash('Failed to send verification email. Please try again later.')
+    set_flash('Failed to send verification email. Please try again later.', level='warning')
     print(f"Error sending email: {e}")
 
 
@@ -112,27 +128,27 @@ def verify_email(token):
   timestamp = request.args.get('timestamp')
 
   if not email or not token or not timestamp:
-    flash('Invalid verification link.')
+    set_flash('Invalid verification link.', level='warning')
     return redirect(url_for('login'))
 
   success, error_message = _verify_token(email, timestamp, token)
 
   if not success:
     print(f"Failed to verify email: {error_message}")
-    flash(error_message)
+    set_flash(error_message, level='warning')
     return redirect(url_for('login'))
 
   # Mark the email as verified
   print(f"Email {email} verified successfully")
   session['verified_email'] = email
-  flash('Email verified successfully! Please create your account.')
+  set_flash('Email verified successfully! Please create your account.', level='success')
   return redirect(url_for('create_account'))
 
 
-@app.route('/create_account')
+@app.route('/create_account', methods=['GET', 'POST'])
 def create_account():
   if 'verified_email' not in session:
-    flash('Please verify your email first.')
+    set_flash('Please verify your email first.', level='warning')
     return redirect(url_for('login'))
 
   if request.method == 'POST':
@@ -140,11 +156,11 @@ def create_account():
     confirm_password = request.form['confirm_password']
 
     if len(password) < 8:
-      flash('Password must be at least 8 characters long.')
+      set_flash('Password must be at least 8 characters long.', level='warning')
       return redirect(url_for('create_account'))
 
     if password != confirm_password:
-      flash('Passwords do not match.')
+      set_flash('Passwords do not match.', level='warning')
       return redirect(url_for('create_account'))
 
     # Create the account (replace with your database logic)
@@ -152,7 +168,7 @@ def create_account():
     session['kerberos'] = kerberos
     session['real_kerberos'] = kerberos
 
-    flash('Account created successfully! You are now logged in.')
+    set_flash('Account created successfully! You are now logged in.')
     return redirect(url_for('index'))
 
   return render_template('create_account.html')
