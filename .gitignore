@@ -108,3 +108,4 @@ start_server.sh
 local_storage/
 minio
 
+/erl_crash.dump
