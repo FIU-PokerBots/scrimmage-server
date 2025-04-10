@@ -6,10 +6,10 @@ from flask_sslify import SSLify
 from flask_migrate import Migrate
 import platform
 import sys
-
+from dotenv import load_dotenv
 # Set Flask app environment variable
 os.environ['FLASK_APP'] = 'scrimmage'
-
+load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
