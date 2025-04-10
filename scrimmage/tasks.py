@@ -623,8 +623,11 @@ def calculate_tournament_elo_task(tournament_id):
             pgn = render_template("tournament.pgn", games=games, tournament=tournament)
             pgn_file.write(pgn)
 
+        bayeselo_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), os.pardir, "deps", "BayesElo", "bayeselo")
+        )
         command = subprocess.Popen(
-            ["bayeselo"], cwd=tmp_dir, env=_get_environment(), stdin=subprocess.PIPE
+            [bayeselo_path], cwd=tmp_dir, env=_get_environment(), stdin=subprocess.PIPE
         )
 
         command.communicate(
