@@ -7,11 +7,14 @@ from flask_migrate import Migrate
 import platform
 import sys
 from dotenv import load_dotenv
+from flask_bcrypt import Bcrypt 
+
 # Set Flask app environment variable
 os.environ['FLASK_APP'] = 'scrimmage'
 load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 
 # Load configuration
 config_object_str = 'scrimmage.config.ProdConfig' if os.environ.get('PRODUCTION', False) else 'scrimmage.config.DevConfig'

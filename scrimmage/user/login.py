@@ -1,57 +1,16 @@
-import time
-from flask import redirect, request, session, url_for, render_template, flash
-from hashlib import sha256
-from urllib.parse import urlparse, urlunparse
-from urllib.parse import urlencode
-import smtplib
+from flask import redirect, request, session, url_for, render_template, make_response
 from scrimmage.decorators import set_flash
-
-from scrimmage import app
-
-
-def generate_token(email, secret_key):
-  timestamp = str(int(time.time()))  # Current time in seconds
-  data = email + timestamp + secret_key
-  token = sha256(data.encode('utf-8')).hexdigest()
-  return token, timestamp
-
-
-def _verify_token(email, timestamp, token):
-  if app.debug:
-    return True, None
-  # Check if the token is too old (e.g., older than 5 seconds)
-  if abs(time.time() - int(timestamp)) > 600: # Token expires in 10 minutes
-    return False, "Token is too old."
-  
-  # Recreate the token using the email, timestamp, and secret key
-  h = sha256()
-  h.update((email + timestamp + app.config['AUTH_KEY']).encode('utf-8'))
-  if h.hexdigest() != token:
-    return False, "Token does not match."
-  
-  # Ensure the email ends with '@fiu.edu'
-  if email[-8:].lower() != '@fiu.edu':
-    return False, "Not an @fiu.edu email"
-  
-  return True, None
-
-
-def _create_redirect(**kwargs):
-  url_parts = list(urlparse(app.config['AUTH_URL_BASE']))
-  return_url = url_for('login_return', _external=True)
-  params = { 'return_url': return_url }
-  params.update(kwargs)
-  url_parts[4] = urlencode(params)
-  return urlunparse(url_parts)
-
+from scrimmage.models import User
+from scrimmage import app, bcrypt, db
+from scrimmage.helpers import _verify_token, send_email, generate_token
 
 @app.route('/login')
 def login():
-  return render_template('login_options.html')
+  return render_template('auth/login_options.html')
 
 @app.route('/first_time_login', methods=['GET'])
 def first_time_login():
-  return render_template('login_email.html')  # This is the current email input page
+  return render_template('auth/login_email.html')  # This is the current email input page
 
 @app.route('/existing_account_login', methods=['GET', 'POST'])
 def existing_account_login():
@@ -59,16 +18,18 @@ def existing_account_login():
     email = request.form['email']
     password = request.form['password']
 
-    if email == "test@fiu.edu" and password == "password123":  # Example validation
+    user = User.query.filter_by(email=email).first()
+
+    if user and bcrypt.check_password_hash(user.password, password):
       session['kerberos'] = email.split('@')[0]
       session['real_kerberos'] = session['kerberos']
-      # set_flash('You have successfully logged in!', level='success')
-      return redirect(url_for('index')) # Login successful
+      set_flash('You have successfully logged in!', level='success')
+      return redirect(url_for('index'))
     else:
       set_flash('Invalid email or password.', level='warning')
       return redirect(url_for('existing_account_login'))
 
-  return render_template('existing_account_login.html')
+  return render_template('auth/existing_account_login.html')
 
 @app.route('/login/return')
 def login_return():
@@ -87,7 +48,11 @@ def send_verification_email():
   email = request.form['email']
   if not email.endswith('@fiu.edu'):
     set_flash('Please use a valid @fiu.edu email address.', level='warning')
-    return render_template('login_email.html')  # Pass the email back to pre-fill the form
+    return render_template('auth/login_email.html')  # Pass the email back to pre-fill the form
+
+  if User.query.filter_by(email=email).first():
+    set_flash('This email is already associated with a user', level='warning')
+    return render_template('auth/login_email.html')
 
   # Generate a verification token
   secret_key = app.config['SECRET_KEY']
@@ -95,32 +60,15 @@ def send_verification_email():
 
   # Create the verification link
   verification_link = url_for('verify_email', email=email, token=token, timestamp=timestamp, _external=True)
-
-  # Send the email
-  send_email(email, verification_link)
+  try:
+    send_email(email, verification_link)
+  except Exception as e:
+    set_flash('Failed to send verification email. Please try again later.', level='warning')
+    print(e)
+  print(verification_link)
 
   set_flash('A verification email has been sent to your FIU email address.', level='success')
   return redirect(url_for('login'))
-
-
-def send_email(to_email, verification_link):
-  sender_email = "fiupokerbots@gmail.com"
-  sender_password = "nadz zznp nspr csga"
-  subject = "Verify Your FIU Email"
-  body = f"Click the link to verify your email: {verification_link}"
-
-  try:
-    print('Sending email...')
-    with smtplib.SMTP('smtp.gmail.com', 587) as server:
-      server.starttls()
-      server.login(sender_email, sender_password)
-      message = f"Subject: {subject}\n\n{body}"
-      server.sendmail(sender_email, to_email, message)
-    print('Email sent successfully.')
-  except Exception as e:
-    set_flash('Failed to send verification email. Please try again later.', level='warning')
-    print(f"Error sending email: {e}")
-
 
 @app.route('/verify_email/<token>')
 def verify_email(token):
@@ -147,13 +95,10 @@ def verify_email(token):
 
 @app.route('/create_account', methods=['GET', 'POST'])
 def create_account():
-  if 'verified_email' not in session:
-    set_flash('Please verify your email first.', level='warning')
-    return redirect(url_for('login'))
-
   if request.method == 'POST':
     password = request.form['password']
     confirm_password = request.form['confirm_password']
+    email = session['verified_email']
 
     if len(password) < 8:
       set_flash('Password must be at least 8 characters long.', level='warning')
@@ -163,19 +108,23 @@ def create_account():
       set_flash('Passwords do not match.', level='warning')
       return redirect(url_for('create_account'))
 
-    # Create the account (replace with your database logic)
-    kerberos = session['verified_email'].split('@')[0]  # Extract kerberos from email
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    user = User(email, hashed_password)
+    db.session.add(user)
+    db.session.commit()
+    
+    kerberos = email.split('@')[0]  # Extract kerberos from email
     session['kerberos'] = kerberos
     session['real_kerberos'] = kerberos
 
     set_flash('Account created successfully! You are now logged in.')
     return redirect(url_for('index'))
 
-  return render_template('create_account.html')
+  return render_template('auth/create_account.html')
 
 
 @app.route('/logout')
 def logout():
-  session.pop('kerberos', None)
-  session.pop('real_kerberos', None)
-  return redirect(url_for('index'))
+  resp = make_response(redirect(url_for('index')))
+  resp.set_cookie('session', '', expires=0)
+  return resp

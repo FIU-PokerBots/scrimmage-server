@@ -109,3 +109,5 @@ local_storage/
 minio
 
 /erl_crash.dump
+
+*.sh

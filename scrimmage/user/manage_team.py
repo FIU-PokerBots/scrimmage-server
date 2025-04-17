@@ -5,12 +5,11 @@ from flask import g, redirect, render_template, request, url_for, send_file, Res
 
 from scrimmage import app, db
 from scrimmage.decorators import team_required
-from scrimmage.models import Bot, GameRequest, Game, GameStatus, TeamJoinRequest, Team, User
+from scrimmage.models import Bot, Game, GameStatus, TeamJoinRequest, User
 from scrimmage.helpers import get_s3_object, put_s3_object
 from scrimmage.statistics import generate_team_stats
 
 from coolname import generate_slug
-from collections import namedtuple
 
 from sqlalchemy import and_
 

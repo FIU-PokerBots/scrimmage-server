@@ -8,11 +8,8 @@ import subprocess
 import tempfile
 import time
 import zipfile
-
-import boto3
 import jinja2
 from sqlalchemy.orm import raiseload
-
 from scrimmage import app, celery_app, db
 from scrimmage.helpers import get_s3_object, put_s3_object
 from scrimmage.models import (

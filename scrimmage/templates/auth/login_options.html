@@ -1,0 +1,41 @@
+{% extends "auth/login_layout.html" %}
+
+{% block content %}
+<div class="ui container" style="padding: 6em 0;">
+  <div class="ui centered grid">
+    <div class="six wide column">
+      <div class="ui segment" style="
+        padding: 3em 2em;
+        border-radius: 1rem;
+        background-color: white;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(34,36,38,.1);
+      ">
+        <h2 class="ui header" style="color: #1b4f72;">FIU Login</h2>
+        <p style="color: rgba(0,0,0,0.6); font-size: 0.9em;">Choose an option below to continue</p>
+
+        <div style="width: 100%; margin-top: 2em;">
+          <form action="{{ url_for('first_time_login') }}" method="GET" style="margin-bottom: 1em;">
+            <button class="ui fluid large primary button" type="submit">
+              First Time Logging In
+            </button>
+          </form>
+        
+          <form action="{{ url_for('existing_account_login') }}" method="GET">
+            <button class="ui fluid large basic primary button" type="submit">
+              Already Created Account
+            </button>
+          </form>
+        </div>
+        
+
+        {% if flash %}
+          <div class="ui {{ flash_level }} message" style="margin-top: 2em;">
+            {{ flash }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

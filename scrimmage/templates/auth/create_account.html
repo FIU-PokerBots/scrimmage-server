@@ -1,0 +1,44 @@
+{% extends "auth/login_layout.html" %}
+
+{% block content %}
+<div class="ui container" style="padding: 6em 0;">
+  <div class="ui centered grid">
+    <div class="six wide column">
+      <div class="ui segment" style="
+        padding: 3em 2em;
+        border-radius: 1rem;
+        background-color: white;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(34, 36, 38, 0.1);
+      ">
+        <h2 class="ui header" style="color: #1b4f72;">Create Account</h2>
+        <p style="color: rgba(0,0,0,0.6); font-size: 0.9em;">
+          Set a password to complete your account setup.
+        </p>
+
+        <form method="POST" action="{{ url_for('create_account') }}" class="ui form" style="margin-top: 2em;">
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" name="password" placeholder="Enter password" required>
+          </div>
+
+          <div class="field">
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" name="confirm_password" placeholder="Re-enter password" required>
+          </div>
+
+          <button type="submit" class="ui fluid large primary button" style="margin-top: 1.5em;">
+            Create Account
+          </button>
+        </form>
+
+        {% if flash %}
+          <div class="ui {{ flash_level }} message" style="margin-top: 2em;">
+            {{ flash }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

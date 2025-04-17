@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="ui container" style="padding: 6em 0;">
+  <div class="ui centered grid">
+    <div class="ten wide column">
+      <div class="ui segment" style="
+        padding: 3em 2em;
+        border-radius: 1rem;
+        background-color: white;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(34, 36, 38, 0.1);
+      ">
+        <h2 class="ui header" style="color: #1b4f72;">FIU Pokerbots Scrimmage Server</h2>
+        <p style="color: rgba(0,0,0,0.65); font-size: 1.1em; margin-top: 0.5em;">
+          Please
+          <a href="{{ url_for('login') }}" style="color: #1b4f72; text-decoration: underline;">
+            log in
+          </a>
+          to continue. FIU Certification is required.
+        </p>
+
+        <div style="margin-top: 2.5em;">
+          {% include '_announcements.html' %}
+        </div>
+
+        <div style="margin-top: 2.5em;">
+          {% include '_recent_games.html' %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
