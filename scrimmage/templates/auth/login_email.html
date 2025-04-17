@@ -1,0 +1,37 @@
+{% extends "auth/login_layout.html" %}
+
+{% block content %}
+<div class="ui container" style="padding: 6em 0;">
+  <div class="ui centered grid">
+    <div class="six wide column">
+      <div class="ui segment" style="
+        padding: 3em 2em;
+        border-radius: 1rem;
+        background-color: white;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(34, 36, 38, 0.1);
+      ">
+        <h2 class="ui header" style="color: #1b4f72;">First Time Login</h2>
+        <p style="color: rgba(0,0,0,0.6); font-size: 0.9em;">
+          Enter your FIU email to receive a verification link
+        </p>
+
+        <form method="POST" action="{{ url_for('send_verification_email') }}" style="margin-top: 2em;">
+          <div class="ui fluid input">
+            <input type="email" name="email" placeholder="example@fiu.edu" required>
+          </div>
+          <button class="ui fluid large primary button" type="submit" style="margin-top: 1.5em;">
+            Send Verification Email
+          </button>
+        </form>
+
+        {% if flash %}
+          <div class="ui {{ flash_level }} message" style="margin-top: 2em;">
+            {{ flash }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

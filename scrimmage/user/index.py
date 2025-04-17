@@ -12,7 +12,7 @@ def index():
   recent_games = Game.query.order_by(Game.create_time.desc()).limit(games_to_show).all()
   if not g.is_logged_in:
     announcements = Announcement.query.filter(Announcement.is_public == True).order_by(Announcement.create_time.desc()).all()
-    return render_template('logged_out.html', recent_games=recent_games, announcements=announcements)
+    return render_template('auth/logged_out.html', recent_games=recent_games, announcements=announcements)
 
   announcements = Announcement.query.order_by(Announcement.create_time.desc()).limit(1).all()
   if not g.team:

@@ -1,10 +1,8 @@
 from scrimmage.settings import settings
 from scrimmage.models import Game, GameStatus
-
 from collections import namedtuple
 import datetime
 from pytz import timezone
-
 from sqlalchemy.orm import load_only, raiseload
 from sqlalchemy import or_
 

@@ -1,7 +1,7 @@
 from flask import abort, session, g, Response, request, redirect, url_for
 from functools import wraps
 
-from scrimmage import app, db
+from scrimmage import app
 from scrimmage.models import User
 from scrimmage.settings import settings
 

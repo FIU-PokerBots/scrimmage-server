@@ -1,4 +1,4 @@
-from scrimmage import app, db
+from scrimmage import db
 
 from scrimmage.models import AdminSetting
 
