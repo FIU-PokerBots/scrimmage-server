@@ -36,25 +36,17 @@ def _verify_token(email, timestamp, token):
   return True, None
 
 
-def _create_redirect(**kwargs):
-  url_parts = list(urlparse(app.config['AUTH_URL_BASE']))
-  return_url = url_for('login_return', _external=True)
-  params = { 'return_url': return_url }
-  params.update(kwargs)
-  url_parts[4] = urlencode(params)
-  return urlunparse(url_parts)
+# def _create_redirect(**kwargs):
+#   url_parts = list(urlparse(app.config['AUTH_URL_BASE']))
+#   return_url = url_for('login_return', _external=True)
+#   params = { 'return_url': return_url }
+#   params.update(kwargs)
+#   url_parts[4] = urlencode(params)
+#   return urlunparse(url_parts)
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-  return render_template('login_options.html')
-
-@app.route('/first_time_login', methods=['GET'])
-def first_time_login():
-  return render_template('login_email.html')  # This is the current email input page
-
-@app.route('/existing_account_login', methods=['GET', 'POST'])
-def existing_account_login():
   if request.method == 'POST':
     email = request.form['email']
     password = request.form['password']
@@ -66,9 +58,12 @@ def existing_account_login():
       return redirect(url_for('index')) # Login successful
     else:
       set_flash('Invalid email or password.', level='warning')
-      return redirect(url_for('existing_account_login'))
+      return redirect(url_for('login'))
+  return render_template('auth_login.html')
 
-  return render_template('existing_account_login.html')
+@app.route('/first_time_login', methods=['GET'])
+def first_time_login():
+  return render_template('auth_login_email.html')  # This is the current email input page
 
 @app.route('/login/return')
 def login_return():
@@ -87,7 +82,7 @@ def send_verification_email():
   email = request.form['email']
   if not email.endswith('@fiu.edu'):
     set_flash('Please use a valid @fiu.edu email address.', level='warning')
-    return render_template('login_email.html')  # Pass the email back to pre-fill the form
+    return render_template('auth_login_email.html')  # Pass the email back to pre-fill the form
 
   # Generate a verification token
   secret_key = app.config['SECRET_KEY']
@@ -100,7 +95,7 @@ def send_verification_email():
   send_email(email, verification_link)
 
   set_flash('A verification email has been sent to your FIU email address.', level='success')
-  return redirect(url_for('login'))
+  return redirect(url_for('create_account'))
 
 
 def send_email(to_email, verification_link):
@@ -148,10 +143,11 @@ def verify_email(token):
 @app.route('/create_account', methods=['GET', 'POST'])
 def create_account():
   if 'verified_email' not in session:
-    set_flash('Please verify your email first.', level='warning')
-    return redirect(url_for('login'))
+    print('No verified email found. Redirecting to login.')
+    set_flash("Please verify your email.", level='warning')
 
   if request.method == 'POST':
+    print('Creating account...')
     password = request.form['password']
     confirm_password = request.form['confirm_password']
 
