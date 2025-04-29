@@ -1,18 +1,51 @@
 {% extends "login_layout.html" %}
 
 {% block content %}
-    <h1>FIU Login</h1>
+    <!-- <h1>FIU Login</h1>
     <p>Choose an option:</p>
-    <form action="{{ url_for('first_time_login') }}" method="GET">
-        <button type="submit">First Time Logging In</button>
+    <form action="{{ url_for('first_time_login') }}" class="ui" method="GET">
+        <button type="submit">Sign up</button>
     </form>
-    <form action="{{ url_for('existing_account_login') }}" method="GET">
-        <button type="submit">Already Created Account</button>
-    </form>
-    <!-- Flash Messages -->
-    {% if flash %}
-        <div class="ui {{ flash_level }} message">
-            {{ flash }}
+    <form action="{{ url_for('existing_account_login') }}" class="ui" method="GET">
+        <button type="submit">Login</button>
+    </form> -->
+    <div class="login-card">
+        <h1 id="form-title">Login</h1>
+        <p id="form-description">Sign in to access the scrimmage server</p>
+        <form id="auth-form" class="ui form">
+            <!-- Email -->
+            <div class="field">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="ui primary button" id="submit-button">Login</button>
+        </form>
+
+        <!-- Go to signup page -->
+        <div class="toggle-link">
+            <p id="toggle-text">
+                Don't have an account? 
+                <button type="button" onclick="redirectToSignup()">Sign up</button>
+            </p>
         </div>
-    {% endif %}
+        <!-- Flash Messages -->
+        {% if flash %}
+            <div class="ui {{ flash_level }} message">
+                {{ flash }}
+            </div>
+        {% endif %}
+    </div>
+    <script>
+        function redirectToSignup() {
+            window.location.href = "{{ url_for('first_time_login') }}";
+        }
+    </script>
 {% endblock %}

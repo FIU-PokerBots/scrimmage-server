@@ -27,6 +27,8 @@ To run the server and worker, run in five separate tabs:
 rabbitmq-server
 
 # http://localhost:15672/ --> Admin Panel
+# username: guest
+# password: guest
 ```
 
 ```bash
