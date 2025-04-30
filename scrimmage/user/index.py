@@ -1,4 +1,4 @@
-from flask import render_template, g, url_for, redirect, request, Response
+from flask import render_template, g, url_for, redirect, request, Response, session
 
 from sqlalchemy import and_
 
@@ -59,14 +59,23 @@ def cancel_team_request():
 def create_team():
   team_name = request.form['team_name']
 
-  if Team.query.filter(Team.name == team_name).count() != 0:
+  if Team.query.filter(Team.name == team_name).count() != 0: # Check if the team name already exists
     return Response("A team with that name already exists. Try again.", content_type="text/plain", status=400)
 
   team = Team(team_name)
   db.session.add(team)
-  user = User(g.kerberos, team)
-  db.session.add(user)
-  db.session.commit()
+
+  kerberos = session.get('kerberos')
+
+  user = User.query.filter_by(kerberos=kerberos).first()
+  if user:
+    user.team = team # If the user exists, associate them with the new team
+  else:
+    user = User(kerberos=kerberos, team=team) # If the user doesn't exist, create a new user and associate them with the team
+    db.session.add(user)
+
+  db.session.commit() # Commit the changes to the database
+
   return redirect(url_for('index'))
 
 
