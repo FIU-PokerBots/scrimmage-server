@@ -2,6 +2,7 @@ import enum, datetime
 
 from scrimmage import app, db
 from .helpers import get_student_info
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class AdminSetting(db.Model):
   __tablename__ = 'settings'
@@ -34,17 +35,28 @@ class User(db.Model):
   __tablename__ = 'users'
   id = db.Column(db.Integer, primary_key=True)
   kerberos = db.Column(db.String(128), unique=True, index=True)
-  team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=False)
+  team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=True)
   team = db.relationship("Team", back_populates="members")
 
   class_year = db.Column(db.String(128))
   full_name = db.Column(db.String(128))
   department = db.Column(db.String(128))
+  password_hash = db.Column(db.String(256))
 
-  def __init__(self, kerberos, team):
+  def __init__(self, kerberos, team, password=None):
     self.kerberos = kerberos
     self.team = team
     self.full_name, self.class_year, self.department = get_student_info(kerberos)
+    if password:
+      self.set_password(password)
+
+  def set_password(self, password):
+    """Hashes and sets the user's password."""
+    self.password_hash = generate_password_hash(password)
+
+  def check_password(self, password):
+    """Checks if the provided password matches the stored hash."""
+    return check_password_hash(self.password_hash, password)
 
 
 class Bot(db.Model):

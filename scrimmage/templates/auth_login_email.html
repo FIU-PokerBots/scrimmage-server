@@ -1,0 +1,20 @@
+{% extends "auth_layout.html" %}
+
+{% block content %}
+    <div class="login-card">
+        <h1 id="form-title">First Time Login</h1>
+        <form class="ui form" method="POST" action="{{ url_for('send_verification_email') }}">
+            <div class="field">
+                <label for="email">FIU Email</label>
+                <input type="email" name="email" placeholder="example@fiu.edu" required>
+            </div>
+            <button type="submit" class="ui primary button">Send Verification Email</button>
+        </form>
+        <!-- Flash Messages -->
+        {% if flash %}
+            <div class="ui {{ flash_level }} message">
+                {{ flash }}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

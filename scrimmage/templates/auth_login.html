@@ -1,0 +1,43 @@
+{% extends "auth_layout.html" %}
+
+{% block content %}
+    <div class="login-card">
+        <h1 id="form-title">Login</h1>
+        <p id="form-description">Sign in to access the scrimmage server</p>
+        <form id="auth-form" class="ui form" method="POST" action="{{ url_for('login') }}">
+            <!-- Email -->
+            <div class="field">
+                <label for="email">FIU Email</label>
+                <input type="email" name="email" id="email" placeholder="Enter your FIU email" required>
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" placeholder="Enter your password" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="ui primary button" id="submit-button">Login</button>
+        </form>
+
+        <!-- Go to signup page -->
+        <div class="toggle-link">
+            <p id="toggle-text">
+                Don't have an account? 
+                <button type="button" onclick="redirectToVerifyEmail()">Sign up</button>
+            </p>
+        </div>
+        <!-- Flash Messages -->
+        {% if flash %}
+            <div class="ui {{ flash_level }} message">
+                {{ flash }}
+            </div>
+        {% endif %}
+    </div>
+    <script>
+        function redirectToVerifyEmail() {
+            window.location.href = "{{ url_for('first_time_login') }}";
+        }
+    </script>
+{% endblock %}

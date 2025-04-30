@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Pokerbots Scrimmage</title>
+
+    <link rel="icon" type="image/png" href="/static/img/favicon.ico">
+
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='css/semantic.min.css') }}" rel="stylesheet">
+
+    <style type="text/css">
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f9f9f9; /* Light background for contrast */
+      }
+
+      /* Center the main container */
+      .ui.main.container {
+        flex: 1 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      /* Login card styling */
+      .login-card {
+        width: 100%;
+        max-width: 400px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0px 2px rgba(0, 0, 0, 0.1);
+        border: 1px solid #d3d3d3; /* Black border added */
+        padding: 20px;
+        text-align: left;
+      }
+
+      .login-card h1 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        /* margin-bottom: 20px; */
+        color: #333;
+      }
+
+      .login-card p {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 20px;
+      }
+
+      .login-card .ui.button {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .login-card .ui.message {
+        margin-top: 20px;
+      }
+
+      /* Form field spacing */
+      .login-card .field {
+        margin-bottom: 15px;
+      }
+
+      /* Toggle link styling */
+      .toggle-link {
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+
+      .toggle-link button {
+        background: none;
+        border: none;
+        color: #2185d0;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+
+      .toggle-link button:hover {
+        color: #0056b3;
+      }
+
+      #toggle-text {
+        text-align: center;
+      }
+    </style>
+
+  </head>
+
+  <body>
+    {% include '_login_navbar.html' %}
+
+    <div class="ui main container">
+      {% block content %}{% endblock %}
+    </div>
+    <br />
+
+    {% include '_footer.html' %}
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/semantic.min.js') }}"></script>
+    {% block scripts %}{% endblock %}
+
+  </body>
+</html>
