@@ -18,7 +18,7 @@ function drawChart() {
   eloData.addColumn('number', 'ELO Rating');
   eloData.addRows([
     {% for elo_datapoint in elo_over_time %}
-      [ new Date('{{ elo_datapoint.datetime.isoformat() }}'), {{ elo_datapoint.elo }} ],
+      [ new Date('{{ elo_datapoint.datetime.isoformat() }}'), {{ elo_datapoint.elo }} ]
     {% endfor %}
   ])
 
@@ -28,7 +28,6 @@ function drawChart() {
     curveType: 'function',
     legend: { position: 'bottom' }
   });
-
 }
 
 google.charts.setOnLoadCallback(drawChart);

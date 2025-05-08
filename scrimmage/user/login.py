@@ -148,6 +148,7 @@ def create_account():
   if 'verified_email' not in session:
     print('No verified email found. Redirecting to login.')
     set_flash("Please verify your email.", level='warning')
+    return redirect(url_for('create_account'))
 
   if request.method == 'POST':
     print('Creating account...')

@@ -23,8 +23,14 @@ migrate = Migrate(app, db)
 sslify = SSLify(app)
 
 # Set up Kerberos login for admin access --> need to change implementation for deployment
-@app.route('/setadmin/<kerberos>')
-def setadmin(kerberos):
+@app.route('/setadmin/<kerberos>/<pin>')
+def setadmin(kerberos, pin):
+    # Validate the pin
+    expected_pin = os.getenv('SETADMIN_PIN')
+    if pin != expected_pin:
+        return jsonify({"error": "Invalid PIN"}), 403
+
+    # Set the session values for the admin
     session['kerberos'] = kerberos
     session['real_kerberos'] = kerberos
     return redirect(url_for('admin_index'))

@@ -13,9 +13,9 @@
       <a href="{{ url_for('manage_team') }}" class="{% if request.endpoint == 'manage_team' %}active{% endif %} item">Manage Team</a>
       <a href="{{ url_for('show_games') }}" class="{% if request.endpoint == 'show_games' %}active{% endif %} item">Your Games</a>
       <a href="{{ url_for('show_tournaments') }}" class="{% if request.endpoint == 'show_tournaments' %}active{% endif %} item">Tournaments</a>
-      <a href="{{ url_for('team_charts') }}" class="{% if request.endpoint == 'team_charts' %}active{% endif %} item">Charts</a>
+      <!-- <a href="{{ url_for('team_charts') }}" class="{% if request.endpoint == 'team_charts' %}active{% endif %} item">Charts</a> -->
     {% endif %}
-      <a href="https://playground.pokerbots.org" class="item">Playground</a>
+      <!-- <a href="https://playground.pokerbots.org" class="item">Playground</a> -->
     {% if g.is_admin %}
       <a href="{{ url_for('admin_index') }}" class="{% if request.endpoint == 'admin_index' %}active{% endif %} item">Admin</a>
       <a href="{{ url_for('sponsor_index') }}" class="{% if request.endpoint == 'sponsor_index' %}active{% endif %} item">Sponsor</a>
